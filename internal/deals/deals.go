@@ -54,22 +54,47 @@ func SafeURL(s string) bool {
 	u, err := url.Parse(s)
 	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Hostname() != "" && u.User == nil && !strings.ContainsAny(s, "<>|\r\n")
 }
+
+// FilterStats assigns each rejected result its first failing condition.
+type FilterStats struct {
+	Retailer       int `json:"retailer"`
+	InvalidProduct int `json:"invalid_product"`
+	Rating         int `json:"rating"`
+	Discount       int `json:"discount"`
+}
+
 func Filter(products []Product, allowed []string, minRating, minDiscount float64, w Weights) []Product {
+	out, _ := FilterWithStats(products, allowed, minRating, minDiscount, w)
+	return out
+}
+func FilterWithStats(products []Product, allowed []string, minRating, minDiscount float64, w Weights) ([]Product, FilterStats) {
 	retailers := map[string]bool{}
 	for _, r := range allowed {
 		retailers[CanonicalRetailer(r)] = true
 	}
 	var out []Product
+	var stats FilterStats
 	for _, p := range products {
 		p.Name = strings.Join(strings.Fields(p.Name), " ")
 		p.Retailer = CanonicalRetailer(p.Retailer)
-		if p.Retailer == "" || !retailers[p.Retailer] || p.Name == "" || p.Price <= 0 || math.IsNaN(p.Price) || math.IsInf(p.Price, 0) || !SafeURL(p.URL) || p.Rating < minRating || p.Discount() < minDiscount {
+		switch {
+		case p.Retailer == "" || !retailers[p.Retailer]:
+			stats.Retailer++
+			continue
+		case p.Name == "" || p.Price <= 0 || math.IsNaN(p.Price) || math.IsInf(p.Price, 0) || !SafeURL(p.URL):
+			stats.InvalidProduct++
+			continue
+		case p.Rating < minRating:
+			stats.Rating++
+			continue
+		case p.Discount() < minDiscount:
+			stats.Discount++
 			continue
 		}
 		p.Score = Score(p, w)
 		out = append(out, p)
 	}
-	return out
+	return out, stats
 }
 func normalizedName(s string) string {
 	return strings.Map(func(r rune) rune {

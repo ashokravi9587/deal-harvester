@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/ashokravi9587/deal-harvester/internal/config"
 	"github.com/ashokravi9587/deal-harvester/internal/deals"
@@ -56,5 +58,40 @@ func TestRun(t *testing.T) {
 	n = &fakeNotify{fail: true}
 	if err := Run(context.Background(), c, &fakeSearch{}, n, logger); err == nil {
 		t.Fatal("delivery failure ignored")
+	}
+}
+
+type previewNotify struct{ fakeNotify }
+
+func (*previewNotify) DeliveryMode() string { return "preview" }
+func TestRunSummaryCounts(t *testing.T) {
+	for _, mode := range []string{"slack", "preview", "failed"} {
+		var logs bytes.Buffer
+		logger := slog.New(slog.NewJSONHandler(&logs, nil))
+		c := config.Config{Categories: []string{"a", "b"}, Retailers: []string{"Target"}, MaxDeals: 1, Weights: deals.DefaultWeights()}
+		var n Notifier = &fakeNotify{fail: mode == "failed"}
+		if mode == "preview" {
+			n = &previewNotify{}
+		}
+		err := Run(context.Background(), c, &fakeSearch{}, n, logger)
+		if (err != nil) != (mode == "failed") {
+			t.Fatalf("unexpected error %v", err)
+		}
+		decoder := json.NewDecoder(&logs)
+		var last map[string]any
+		for decoder.More() {
+			var row map[string]any
+			if err := decoder.Decode(&row); err != nil {
+				t.Fatal(err)
+			}
+			last = row
+		}
+		sent := float64(1)
+		if mode != "slack" {
+			sent = 0
+		}
+		if last["extracted"] != float64(2) || last["filtered_out"] != float64(0) || last["duplicates_removed"] != float64(1) || last["selected_for_digest"] != float64(1) || last["sent_to_digest"] != sent {
+			t.Fatalf("summary %+v", last)
+		}
 	}
 }

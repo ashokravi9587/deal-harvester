@@ -149,22 +149,22 @@ func (p Profile) Validate() error {
 	}
 	return nil
 }
-func (p Profile) Matches(product deals.Product) bool {
-	// Price caps are strict: 'under $20' excludes $20.00. Zero means no cap.
+func (p Profile) Matches(product deals.Product) bool { return p.RejectionReason(product) == "" }
+func (p Profile) RejectionReason(product deals.Product) string {
 	if p.MaxPrice > 0 && product.Price >= p.MaxPrice {
-		return false
+		return "price_cap"
 	}
 	for _, pattern := range p.RequiredPatterns {
 		if matched, _ := regexp.MatchString(pattern, product.Name); !matched {
-			return false
+			return "required_title"
 		}
 	}
 	for _, pattern := range p.ExcludePatterns {
 		if matched, _ := regexp.MatchString(pattern, product.Name); matched {
-			return false
+			return "excluded_title"
 		}
 	}
-	return true
+	return ""
 }
 
 // LoadSlackWebhook loads only Slack configuration; no search credentials or profiles are needed.

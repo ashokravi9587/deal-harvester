@@ -78,3 +78,9 @@ TV titles must explicitly mention 65 inches, TV/television, and 4K/UHD/Ultra HD;
 ## Test Slack alone
 
 Run: `go run ./cmd/deal-harvester -slack-test`. This reads only Slack configuration, sends one clearly labeled sample digest, and uses zero SerpAPI searches. It does not require SERPAPI_KEY or a profile file. Do not combine it with -dry-run.
+
+## Run logs
+
+Each `search completed` entry includes `extracted`, `filtered_out`, `retained`, and `rejected_by_reason` (retailer, invalid product, rating, discount, price cap, missing required title, excluded title). Each result is counted under its first failing rule, so rejection counts sum to `filtered_out`. Counts refer to result occurrences before deduplication.
+
+The `digest prepared` and final delivery entries show total searches, extracted/filtered/retained results, duplicates removed, unique deals, deals omitted by the limit, selected deals, and `sent_to_digest`. A successful empty digest has zero deals sent but still sends a no-deals message. Failed deliveries report zero confirmed deals sent; dry runs report `delivery_mode=preview` and zero sent to Slack. Logs never include API credentials or webhook URLs.

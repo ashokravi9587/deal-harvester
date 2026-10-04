@@ -77,3 +77,20 @@ func TestDedupeAndRank(t *testing.T) {
 		t.Fatal("zero limit")
 	}
 }
+
+func TestFilterReasonCounts(t *testing.T) {
+	good := product()
+	retailer := good
+	retailer.Retailer = "Other"
+	retailer.Price = 0
+	invalid := good
+	invalid.Price = 0
+	rating := good
+	rating.Rating = 1
+	discount := good
+	discount.OldPrice = 0
+	out, stats := FilterWithStats([]Product{good, retailer, invalid, rating, discount}, []string{"Amazon"}, 4, 10, DefaultWeights())
+	if len(out) != 1 || stats.Retailer != 1 || stats.InvalidProduct != 1 || stats.Rating != 1 || stats.Discount != 1 {
+		t.Fatalf("counts: %+v retained %d", stats, len(out))
+	}
+}

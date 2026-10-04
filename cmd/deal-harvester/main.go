@@ -19,6 +19,8 @@ import (
 
 type preview struct{}
 
+func (preview) DeliveryMode() string { return "preview" }
+
 func (preview) Send(_ context.Context, p []deals.Product) error {
 	return json.NewEncoder(os.Stdout).Encode(notification.Format(p))
 }
