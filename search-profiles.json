@@ -1,0 +1,53 @@
+[
+    {
+        "name":  "65-inch 4K TVs under $200",
+        "queries":  [
+                        "65 inch 4K television under $200"
+                    ],
+        "max_price":  200,
+        "required_patterns":  [
+                                  "(?i)\\b(?:4k|uhd|ultra\\s*hd)\\b",
+                                  "(?i)\\b65\\s*(?:[\"″]|[- ]?\\s*(?:inch|in\\b))",
+                                  "(?i)\\b(?:tv|television)\\b"
+                              ],
+        "exclude_patterns":  [
+                                 "(?i)\\b(?:mount|stand|cover|remote|protector|bracket|replacement|wall\\s*art)\\b"
+                             ]
+    },
+    {
+        "name":  "Gardening supplies",
+        "queries":  [
+                        "garden plant pots",
+                        "railing planters",
+                        "hanging plant pots",
+                        "garden potting soil",
+                        "raised garden bed"
+                    ],
+        "required_patterns":  [
+                                  "(?i)\\b(?:pots?|planters?|soil|potting\\s*mix|raised\\s+(?:garden\\s+)?beds?)\\b"
+                              ],
+        "exclude_patterns":  [
+                                 "(?i)\\b(?:cooking|cookware|stockpot|saucepan)\\b"
+                             ]
+    },
+    {
+        "name":  "Halloween decor under $20",
+        "queries":  [
+                        "Halloween decorations under $20"
+                    ],
+        "max_price":  20,
+        "exclude_patterns":  [
+                                 "(?i)\\b(?:costumes?|candy|candies)\\b"
+                             ]
+    },
+    {
+        "name":  "Christmas decor under $20",
+        "queries":  [
+                        "Christmas decorations under $20"
+                    ],
+        "max_price":  20,
+        "exclude_patterns":  [
+                                 "(?i)\\b(?:costumes?|candy|candies)\\b"
+                             ]
+    }
+]

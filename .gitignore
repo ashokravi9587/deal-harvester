@@ -1,0 +1,7 @@
+.env
+.env.*
+!.env.example
+/deal-harvester
+/deal-harvester.exe
+coverage.out
+*.test

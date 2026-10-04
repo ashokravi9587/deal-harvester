@@ -1,0 +1,37 @@
+name: Daily deals
+on:
+  schedule:
+    - cron: '15 7 * * *'
+      timezone: America/Los_Angeles
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: daily-deals
+  cancel-in-progress: false
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - run: go test ./...
+      - run: go run ./cmd/deal-harvester
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SEARCH_PROFILES_FILE: ${{ vars.SEARCH_PROFILES_FILE || 'search-profiles.json' }}
+          SEARCH_CATEGORIES: ${{ vars.SEARCH_CATEGORIES }}
+          MAX_DEALS: ${{ vars.MAX_DEALS }}
+          ALLOWED_RETAILERS: ${{ vars.ALLOWED_RETAILERS }}
+          MIN_RATING: ${{ vars.MIN_RATING }}
+          MIN_DISCOUNT: ${{ vars.MIN_DISCOUNT }}
+          SEARCH_LOCATION: ${{ vars.SEARCH_LOCATION }}
+          SCORE_DISCOUNT_WEIGHT: ${{ vars.SCORE_DISCOUNT_WEIGHT }}
+          SCORE_RATING_WEIGHT: ${{ vars.SCORE_RATING_WEIGHT }}
+          SCORE_REVIEW_WEIGHT: ${{ vars.SCORE_REVIEW_WEIGHT }}
+          SCORE_VALUE_WEIGHT: ${{ vars.SCORE_VALUE_WEIGHT }}
